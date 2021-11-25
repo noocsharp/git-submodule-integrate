@@ -15,7 +15,6 @@ do
 
 	# copy the tree from the child to the parent
 	treehash=$(git -C "$child" cat-file -p $commit | head -n1 | cut -f2 -d' ')
-	echo "treehash: $treehash"
 
 	git -C "$child" cat-file tree "$treehash" | git hash-object -t tree -w --stdin > /dev/null
 
@@ -28,7 +27,7 @@ do
 		path=$(echo "$line" | cut -d'	' -f2)
 
 		git -C "$child" cat-file "$type" "$hash" | git hash-object -t "$type" -w --stdin > /dev/null
-		git update-index --add --cacheinfo "$mode,$hash,$where/$path" > /dev/null
+		[ "$type" != "tree" ] &&  git update-index --add --cacheinfo "$mode,$hash,$where/$path" > /dev/null
 	done
 
 	git commit -C "$commit"
