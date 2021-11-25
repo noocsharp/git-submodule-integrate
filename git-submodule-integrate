@@ -1,0 +1,35 @@
+#!/bin/sh
+
+[ $# -ne 2 ] && {
+	printf "usage: $0 what where" 1>&2
+	exit 1
+}
+
+child="$1"
+where="$2"
+
+for commit in $(git -C "$child" rev-list --reverse HEAD)
+do
+	# copy the commit from the child to the parent
+	git -C "$child" cat-file commit "$commit" | git hash-object -t commit -w --stdin > /dev/null
+
+	# copy the tree from the child to the parent
+	treehash=$(git -C "$child" cat-file -p $commit | head -n1 | cut -f2 -d' ')
+	echo "treehash: $treehash"
+
+	git -C "$child" cat-file tree "$treehash" | git hash-object -t tree -w --stdin > /dev/null
+
+	# copy the files and subtrees into the parent
+	git -C "$child" ls-tree -tr $commit | while read line
+	do
+		mode=$(echo "$line" | cut -d' ' -f1)
+		type=$(echo "$line" | cut -d' ' -f2)
+		hash=$(echo "$line" | cut -d' ' -f3 | cut -d'	' -f1)
+		path=$(echo "$line" | cut -d'	' -f2)
+
+		git -C "$child" cat-file "$type" "$hash" | git hash-object -t "$type" -w --stdin > /dev/null
+		git update-index --add --cacheinfo "$mode,$hash,$where/$path" > /dev/null
+	done
+
+	git commit -C "$commit"
+done
