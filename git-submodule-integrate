@@ -22,7 +22,7 @@ do
 	git -C "$child" cat-file tree "$treehash" | git hash-object -t tree -w --stdin > /dev/null
 
 	# copy the files and subtrees into the parent
-	git -C "$child" diff-tree --root -t "$commit" | while read line
+	git -C "$child" diff-tree -m --root -t "$commit" | while read line
 	do
 		newhash=$(echo "$line" | cut -d' ' -f4)
 		[ "$newhash" = "0000000000000000000000000000000000000000" ] && continue
@@ -35,7 +35,7 @@ do
 	git rm -q -r --cached "$where"
 	git read-tree --prefix="$where" "$treehash"
 
-	git commit -C "$commit"
+	git commit --allow-empty -C "$commit"
 
 	finished=$(( finished + 1 ))
 	printf "%s/%s finished\n" "$finished" "$total"
