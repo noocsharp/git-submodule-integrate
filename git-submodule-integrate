@@ -29,13 +29,15 @@ do
 		hash=$(echo "$line" | cut -d' ' -f3 | cut -d'	' -f1)
 		path=$(echo "$line" | cut -d'	' -f2)
 
-		git -C "$child" cat-file "$type" "$hash" | git hash-object -t "$type" -w --stdin > /dev/null
+		if ! git cat-file -e "$hash"
+		then
+			git -C "$child" cat-file "$type" "$hash" | git hash-object -t "$type" -w --stdin > /dev/null
+		fi
 	done
 
-	git rm -r "$where"
+	git rm -q -r --cached "$where"
 	git read-tree --prefix="$where" "$treehash"
 
-	git restore .
 	git commit -C "$commit" || exit 1
 
 	finished=$(( finished + 1 ))
