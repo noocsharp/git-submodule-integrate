@@ -27,8 +27,11 @@ do
 		path=$(echo "$line" | cut -d'	' -f2)
 
 		git -C "$child" cat-file "$type" "$hash" | git hash-object -t "$type" -w --stdin > /dev/null
-		[ "$type" != "tree" ] &&  git update-index --add --cacheinfo "$mode,$hash,$where/$path" > /dev/null
 	done
 
-	git commit -C "$commit"
+	git rm -r "$where"
+	git read-tree --prefix="$where" "$treehash"
+
+	git restore .
+	git commit -C "$commit" || exit 1
 done
