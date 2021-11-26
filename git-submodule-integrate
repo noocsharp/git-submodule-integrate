@@ -22,17 +22,13 @@ do
 	git -C "$child" cat-file tree "$treehash" | git hash-object -t tree -w --stdin > /dev/null
 
 	# copy the files and subtrees into the parent
-	git -C "$child" ls-tree -tr $commit | while read line
+	git -C "$child" diff-tree --root -t "$commit" | while read line
 	do
-		mode=$(echo "$line" | cut -d' ' -f1)
-		type=$(echo "$line" | cut -d' ' -f2)
-		hash=$(echo "$line" | cut -d' ' -f3 | cut -d'	' -f1)
-		path=$(echo "$line" | cut -d'	' -f2)
+		newhash=$(echo "$line" | cut -d' ' -f4)
+		type=$(git -C "$child" cat-file -t "$newhash")
+		[ "$type" = "commit" ] && continue
 
-		if ! git cat-file -e "$hash"
-		then
-			git -C "$child" cat-file "$type" "$hash" | git hash-object -t "$type" -w --stdin > /dev/null
-		fi
+		git -C "$child" cat-file "$type" "$newhash" | git hash-object -t "$type" -w --stdin > /dev/null
 	done
 
 	git rm -q -r --cached "$where"
