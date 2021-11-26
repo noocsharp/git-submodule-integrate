@@ -8,6 +8,9 @@
 child="$1"
 where="$2"
 
+total=$(git -C "$child" rev-list --count HEAD)
+finished=0
+
 for commit in $(git -C "$child" rev-list --reverse HEAD)
 do
 	# copy the commit from the child to the parent
@@ -34,4 +37,7 @@ do
 
 	git restore .
 	git commit -C "$commit" || exit 1
+
+	finished=$(( finished + 1 ))
+	printf "%s/%s finished" "$finished" "$total"
 done
