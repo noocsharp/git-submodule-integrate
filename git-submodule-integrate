@@ -35,7 +35,7 @@ do
 	git rm -q -r --cached "$where"
 	git read-tree --prefix="$where" "$treehash"
 
-	git commit -C "$commit" || exit 1
+	git commit -C "$commit"
 
 	finished=$(( finished + 1 ))
 	printf "%s/%s finished\n" "$finished" "$total"
