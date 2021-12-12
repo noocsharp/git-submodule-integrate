@@ -24,8 +24,15 @@ do
 	# copy the files and subtrees into the parent
 	git -C "$child" diff-tree -m --root -t "$commit" | while read line
 	do
+		# don't need to copy object if it doesn't exist
 		newhash=$(echo "$line" | cut -d' ' -f4)
 		[ "$newhash" = "0000000000000000000000000000000000000000" ] && continue
+
+		# don't need to copy object if it is a submodule
+		newmode=$(echo "$line" | cut -d' ' -f2)
+		[ "$newmode" = "160000" ] && continue
+
+		# we already copied commits
 		type=$(git -C "$child" cat-file -t "$newhash")
 		[ "$type" = "commit" ] && continue
 
