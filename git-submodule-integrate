@@ -36,7 +36,10 @@ do
 		type=$(git -C "$child" cat-file -t "$newhash")
 		[ "$type" = "commit" ] && continue
 
-		git -C "$child" cat-file "$type" "$newhash" | git hash-object -t "$type" -w --stdin > /dev/null
+		if ! git cat-file -e "$newhash"
+		then
+			git -C "$child" cat-file "$type" "$newhash" | git hash-object -t "$type" -w --stdin > /dev/null
+		fi
 	done
 
 	git rm -q -r --cached "$where"
