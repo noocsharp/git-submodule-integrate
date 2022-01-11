@@ -28,14 +28,15 @@ do
 		newhash=$(echo "$line" | cut -d' ' -f4)
 		[ "$newhash" = "0000000000000000000000000000000000000000" ] && continue
 
-		# don't need to copy object if it is a submodule
+		# 160000 means object is a submodule, so don't copy it
 		newmode=$(echo "$line" | cut -d' ' -f2)
 		[ "$newmode" = "160000" ] && continue
 
-		# we already copied commits
+		# we already copied commits, so don't copy them
 		type=$(git -C "$child" cat-file -t "$newhash")
 		[ "$type" = "commit" ] && continue
 
+		# only attempt to copy object if it isn't already present in the parent repository
 		if ! git cat-file -e "$newhash"
 		then
 			git -C "$child" cat-file "$type" "$newhash" | git hash-object -t "$type" -w --stdin > /dev/null
