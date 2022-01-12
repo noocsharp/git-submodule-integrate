@@ -53,6 +53,7 @@ do
 		fi
 	done
 
+	# read tree of new commit into index
 	git rm -q -r --cached "$where"
 	git read-tree --prefix="$where" "$treehash"
 
@@ -62,4 +63,5 @@ do
 	printf "%s/%s finished\n" "$finished" "$total"
 done
 
-git reset --hard HEAD
+# force worktree to reflect updated HEAD
+git checkout -f HEAD
