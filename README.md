@@ -39,5 +39,4 @@ to be placed and run
 $ $GSI $CHILD $DEST
 ```
 
-Of course
 Depending on the size of your repo and commits, it may take a while.

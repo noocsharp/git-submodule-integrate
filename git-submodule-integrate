@@ -1,9 +1,19 @@
 #!/bin/sh
 
 [ $# -ne 2 ] && {
-	printf "usage: $0 what where" 1>&2
+	printf "usage: $0 path_to_child subdir_in_parent" 1>&2
 	exit 1
 }
+
+if git diff-files --quiet || git diff-index --quiet --cached HEAD --
+then
+	printf "Changes in the index or working tree will be lost. Continue? [y/n]: "
+    read yn
+    case $yn in
+        [Yy]*) ;;
+        *) printf "No changes were made\n"; exit 1 ;;
+    esac
+fi
 
 child="$1"
 where="$2"
@@ -51,3 +61,5 @@ do
 	finished=$(( finished + 1 ))
 	printf "%s/%s finished\n" "$finished" "$total"
 done
+
+git reset --hard HEAD
