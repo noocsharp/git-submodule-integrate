@@ -18,46 +18,18 @@ fi
 child="$1"
 where="$2"
 
-total=$(git -C "$child" rev-list --count HEAD)
+# pull the child's objects into the parent
+git fetch "$child"
+
+total=$(git rev-list --count FETCH_HEAD)
 finished=0
 
-for commit in $(git -C "$child" rev-list --reverse HEAD)
+for commit in $(git rev-list --reverse FETCH_HEAD)
 do
-	# copy the commit from the child to the parent
-	git -C "$child" cat-file commit "$commit" | git hash-object -t commit -w --stdin > /dev/null
-
-	# copy the tree from the child to the parent
-	treehash=$(git -C "$child" cat-file -p $commit | head -n1 | cut -f2 -d' ')
-
-	git -C "$child" cat-file tree "$treehash" | git hash-object -t tree -w --stdin > /dev/null
-
-	# copy the files and subtrees into the parent
-	git -C "$child" diff-tree -m --root -t "$commit" | while read line
-	do
-		# don't need to copy object if it doesn't exist
-		newhash=$(echo "$line" | cut -d' ' -f4)
-		[ "$newhash" = "0000000000000000000000000000000000000000" ] && continue
-
-		# 160000 means object is a submodule, so don't copy it
-		newmode=$(echo "$line" | cut -d' ' -f2)
-		[ "$newmode" = "160000" ] && continue
-
-		# we already copied commits, so don't copy them
-		type=$(git -C "$child" cat-file -t "$newhash")
-		[ "$type" = "commit" ] && continue
-
-		# only attempt to copy object if it isn't already present in the parent repository
-		if ! git cat-file -e "$newhash"
-		then
-			git -C "$child" cat-file "$type" "$newhash" | git hash-object -t "$type" -w --stdin > /dev/null
-		fi
-	done
-
 	# read tree of new commit into index
-	git rm -q -r --cached "$where"
-	git read-tree --prefix="$where" "$treehash"
-
+	git read-tree --prefix="$where" "$commit"
 	git commit --allow-empty -C "$commit"
+	git rm -q -r --cached "$where"
 
 	finished=$(( finished + 1 ))
 	printf "%s/%s finished\n" "$finished" "$total"

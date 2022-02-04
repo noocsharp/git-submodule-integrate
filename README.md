@@ -11,10 +11,10 @@ The script acts on two repositories: the parent repo and the child repo. Once
 the script has been run, the parent repo will contain the child repo in a
 subdirectory.
 
-First, you'll need copies of the parent and child repositories in separate
-directories. So if the child repository is a submodule, you'll need to clone it
-into its own repo, outside of the parent. We will assume that `$PARENT` is the
-path to the parent repository and `$CHILD` is the path to the child repository.
+To start, clone the parent repository somewhere. We will assume that `$PARENT`
+is the path of the parent repository. Next, either clone the child repository
+locally, or find a clone URL for the child. We will assume that `$CHILD`
+is this path or url.
 
 Next, download the script somewhere. We will assume the path of the script is
 `$GSI`.
